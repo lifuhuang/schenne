@@ -1,26 +1,24 @@
+;; Utilities used for incompatible environments.
 
-;; Utililies used by Schenne
-
-(define (for-each lst proc)
-  (if (null? lst)
+(define (for-each proc seq)
+  (if (null? seq)
       'Done
       (begin
-        (proc (car lst))
-        (for-each (cdr lst) proc))))
+        (proc (car seq))
+        (for-each (cdr seq) proc))))
 
-(define (left-aggregate lst op init)
+(define (find-tail pred seq)
+  (if (or (null? seq) (pred (car seq)))
+    seq
+    (find-tail pred (cdr seq))))
+
+(define (find pred seq)
+  (cond ((null? seq) #f)
+        ((pred (car seq)) (car seq))
+        (else (find pred (cdr seq)))))
+
+(define (fold-left op init lst)
   (if (null? lst)
       init
-      (left-aggregate (cdr lst) op (op init (car lst)))))
-        
-;; Error logging
-(define (error . strs)
-  (write "ERROR:")
-  (for-each
-   strs
-   (lambda (msg)
-     (write " ")
-     (write msg)))
-  (newline)
-  'Error)
-
+      (fold-left op (op init (car lst)) (cdr lst))))
+       

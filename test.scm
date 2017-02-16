@@ -1,5 +1,4 @@
 (load "utils.scm")
-(load "table.scm")
 
 ;; Test utils
 (define assertion-failed 'ASSERTION-FAILED)
@@ -12,11 +11,14 @@
                (cons "assertion failed!" msg))
         assertion-failed)))
 
-(define (assert-equal exp-a exp-b)
-  (assert (eq? exp-a exp-b) exp-a "does not equals" exp-b))
+(define (assert-eq exp-a exp-b)
+  (assert (eq? exp-a exp-b) exp-a "does not eq" exp-b))
 
-(define (assert-error exp)
-  (assert (eq? exp 'Error) exp "is returned instead of a expected error"))
+(define (assert-eqv exp-a exp-b)
+  (assert (eqv? exp-a exp-b) exp-a "does not eqv" exp-b))
+
+(define (assert-equal exp-a exp-b)
+  (assert (equal? exp-a exp-b) exp-a "does not equal" exp-b))
 
 (define (test-assertion . exp)
   (left-aggregate
@@ -24,19 +26,3 @@
    (lambda (x y) (and x (not (eq? y assertion-failed))))
    #t))
 
-
-;; Test tables
-
-(define (test-table)
-  (define t (make-table))
-  (assert-error (get t "Tom"))
-  (put! t "Tom" 15)
-  (assert-equal (get t "Tom") 15)
-  (put! t "Jack" 17)
-  (assert-equal (get t "Jack") 17)
-  (put! t "Tom" 16)
-  (assert-equal (get t "Tom") 16)
-  (assert-equal (get t "Jack") 17)
-  'Done)
-
-(test-table)
