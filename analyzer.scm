@@ -1,4 +1,1 @@
-#lang racket
-
-(define (analyze expr)
-  (cond 
+(define (analyze expr))
