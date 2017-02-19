@@ -8,9 +8,9 @@
         (for-each (cdr seq) proc))))
 
 (define (find-tail pred seq)
-  (if (or (null? seq) (pred (car seq)))
-    seq
-    (find-tail pred (cdr seq))))
+  (cond ((null? seq) #f)
+        ((pred (car seq)) seq)
+        (else (find-tail pred (cdr seq)))))
 
 (define (find pred seq)
   (cond ((null? seq) #f)

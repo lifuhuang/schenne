@@ -1,5 +1,3 @@
-(load "utils.scm")
-
 ;; Test utils
 (define assertion-failed 'ASSERTION-FAILED)
 (define assertion-passed 'ASSERTION-PASSED)

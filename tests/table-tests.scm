@@ -1,5 +1,5 @@
-(load "test.scm")
-(load "table.scm")
+(load "src/table.scm")
+(load "tests/test-utils.scm")
 
 ;; test tables
 
@@ -11,4 +11,5 @@
   (assert-equal (get t "jack") 17)
   (put! t "tom" 16)
   (assert-equal (get t "tom") 16)
-  (assert-equal (get t "jack") 17))
+  (assert-equal (get t "jack") 17)
+  (write "."))

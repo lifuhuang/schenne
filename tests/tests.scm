@@ -1,5 +1,5 @@
-(load "environment-tests.scm")
-(load "table-tests.scm")
+(load "tests/environment-tests.scm")
+(load "tests/table-tests.scm")
 
 (newline)
 (test-table)

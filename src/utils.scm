@@ -1,2 +1,2 @@
-(define (has-tag? obj tag)
+(define (tagged-with? obj tag)
   (and (pair? obj) (eq? (car obj tag))))

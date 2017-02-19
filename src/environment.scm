@@ -1,10 +1,10 @@
 ;; Data structures for modeling environments.
 
 ;; Frame
-(define (make-frame)
-  (cons 'Head '()))
+(define (make-frame bindings)
+  (cons 'Head bindings))
 
-(define (get-frame-bindings frame)
+(define (frame-bindings frame)
   (cdr frame))
 
 (define (add-binding-to-frame! frame var value)
@@ -26,10 +26,10 @@
       (error "Undefined variable: " var)
       (let ((tail (find-tail 
                     (lambda (binding) (eq? (car binding) var)) 
-                    (get-frame-bindings (first-frame env)))))
-        (if (null? tail)
-          (iter (cdr env)) 
-          (cdar tail)))))
+                    (frame-bindings (first-frame env)))))
+        (if tail
+          (cdar tail)
+          (iter (cdr env))))))
   (iter env)) 
 
 (define (set-variable! var value env)
@@ -38,20 +38,20 @@
       (error "Undefined variable: " var)
       (let ((tail (find-tail
                     (lambda (binding) (eq? (car binding) var))
-                    (get-frame-bindings (first-frame env)))))
-        (if (null? tail)
-          (iter (cdr env))
-          (set-cdr! (car tail) value)))))
+                    (frame-bindings (first-frame env)))))
+        (if tail
+          (set-cdr! (car tail) value)
+          (iter (cdr env))))))
   (iter env))
 
 (define (define-variable! var value env)
   (let ((frame (first-frame env)))
     (let ((tail (find-tail
                   (lambda (binding) (eq? (car binding) var))
-                  (get-frame-bindings frame))))
-      (if (null? tail)
-        (add-binding-to-frame! frame var value)
-        (set-cdr! (car tail) value)))))
+                  (frame-bindings frame))))
+      (if tail
+        (set-cdr! (car tail) value)
+        (add-binding-to-frame! frame var value)))))
 
 (define (extend-environment env frame)
   (cons frame env))
