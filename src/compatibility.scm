@@ -21,4 +21,3 @@
   (if (null? lst)
       init
       (fold-left op (op init (car lst)) (cdr lst))))
-       

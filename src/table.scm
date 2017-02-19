@@ -13,30 +13,22 @@
   (set-cdr! item value))
 
 (define (make-table)
-  (cons 0 '()))
-
-(define (table-size table)
-  (car table))
-
-(define (table-content table)
-  (cdr table))
+  (list 'table))
 
 (define (put! table key value)
   (let ((tail (find-tail 
-                (lambda (x) (string=? key (item-key x)))
-                (table-content table))))
+                (lambda (x) (equal? key (item-key x)))
+                (cdr table))))
     (if tail
       (set-item-value! (car tail) value)
-      (begin
-          (set-car! table (+ (table-size table) 1))
-          (set-cdr! table (cons 
-                            (make-item key value) 
-                            (table-content table))))))) 
+      (set-cdr! table (cons 
+                        (make-item key value) 
+                        (cdr table))))))
 
 (define (get table key)
   (let ((tail (find-tail 
-                (lambda (x) (string=? key (item-key x)))
-                (table-content table))))
+                (lambda (x) (equal? key (item-key x)))
+                (cdr table))))
     (if tail
       (item-value (car tail)) 
       (error "Cannot find item with key" key))))
