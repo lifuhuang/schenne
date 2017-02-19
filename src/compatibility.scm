@@ -2,7 +2,7 @@
 
 (define (for-each proc seq)
   (if (null? seq)
-      'Done
+      'done
       (begin
         (proc (car seq))
         (for-each (cdr seq) proc))))
