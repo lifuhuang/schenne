@@ -1,14 +1,8 @@
 (load "tests/environment-tests.scm")
 (load "tests/table-tests.scm")
+(load "tests/procedure-tests.scm")
 
-(newline)
-(test-table)
-(write "Passed table tests.")
+(run-table-tests)
+(run-environment-tests)
+(run-procedure-tests)
 
-(newline)
-(test-frame)
-(write "Passed frame tests.")
-
-(newline)
-(test-environment)
-(write "Passed environment tests.")

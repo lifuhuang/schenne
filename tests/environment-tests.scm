@@ -1,4 +1,4 @@
-(load "src/environment.scm")
+(load "src/data-structures/environment.scm")
 (load "tests/test-utils.scm")
 
 (define (test-frame)
@@ -32,3 +32,12 @@
   (assert-eqv (find-variable 'x inner-env) 200)
   (assert-eqv (find-variable 'x outer-env) 300)
   (write "."))
+
+(define (run-environment-tests)
+  (newline)
+  (test-frame)
+  (write "Passed frame test.")
+
+  (newline)
+  (test-environment)
+  (write "Passed environment test."))

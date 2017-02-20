@@ -1,4 +1,6 @@
-(load "src/tags.scm")
+;; All basic special forms in Scheme.
+
+(define unspecified-value 'unspecified-value)
 
 (define (install-quotation syntax)
   (define (analyze-quotation expr)
@@ -14,7 +16,7 @@
       (lambda (env)
         (set-variable! var (val-exe env) env))))
   
-  (register 'assignment analyze-assignment syntax))
+  (register 'set! analyze-assignment syntax))
 
 (define (install-definition syntax)
   (define (analyze-definition expr)
@@ -23,14 +25,13 @@
       (lambda (env)
         (define-variable! var (val-exe env) env))))
   
-  ;; interface
-  (register 'definition analyze-definition syntax))
+  (register 'define analyze-definition syntax))
 
 (define (install-if-expression syntax)
   (define (analyze-if-expression expr)
-    (let ((predicate-exe (analyze expr syntax))
-          (consequence-exe (analyze expr syntax))
-          (alternative-exe (analyze expr syntax)))
+    (let ((predicate-exe (analyze (cadr expr) syntax))
+          (consequence-exe (analyze (caddr expr) syntax))
+          (alternative-exe (analyze (cadddr expr) syntax)))
       (lambda (env)
         (if (true? (predicate-exe env))
           (consequence-exe env)
@@ -92,7 +93,7 @@
         (lambda (env)
           (cond ((true? pred1) (conseq1 env))
                 ((true? pred2) (conseq2 env))
-                (else unspecified-value-tag)))))
+                (else unspecified-value)))))
 
     (let ((clauses (cdr expr)))
       (cond ((null? clauses) 
@@ -105,4 +106,13 @@
                             clauses)))))
 
   (register 'cond analyze-cond-expression syntax))
+
+(define (install-all-special-forms syntax)
+  (install-assignment syntax)
+  (install-begin-expression syntax)
+  (install-cond-expression syntax)
+  (install-definition syntax)
+  (install-if-expression syntax)
+  (install-lambda-expression syntax)
+  (install-quotation syntax))
 

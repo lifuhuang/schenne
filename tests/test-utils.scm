@@ -1,6 +1,9 @@
 ;; Test utils
+
 (define assertion-failed 'ASSERTION-FAILED)
+
 (define assertion-passed 'ASSERTION-PASSED)
+
 (define (assert exp . msg)
   (if exp
       assertion-passed
