@@ -1,86 +1,41 @@
 (load "src/table.scm")
-
+(load "src/special-forms/basic-sf.scm")
 
 (define (make-syntax) (make-table))
 
-(define (register op type proc syntax)
-  (put! syntax (cons op type) proc))
+(define (register op proc syntax)
+  (put! syntax op proc))
 
-(define (lookup op type syntax)
-  (get syntax (cons op type)))
+(define (lookup op syntax)
+  (if (has-key? syntax op)
+    (get syntax op)
+    #f))
 
-(define (install-self-evaluating syntax)
-  ;; internal procedure
-  (define (bool? expr)
-    (or (eq? expr 'true)
-        (eq? expr 'false)))
-
-  (define (test expr)
-    (or (number? expr)
-        (string? expr)
-        (bool? expr)))
-
-  (define (analyze expr) 
-    (lambda (env) expr))
-
-  ;; interface
-  (register 'self-evaluating 'test test syntax)
-  (register 'self-evaluating 'analyze analyze syntax))
-
-(define (install-variable syntax)
-  ;; internal procedure
-  (define (test expr)
-    (symbol? expr))
-
-  (define (analyze expr)
-    (lambda (env)
-      (find-variable expr env)))
-  
-  ;; interface
-  (register 'self-evaluating 'test test syntax)
-  (register 'self-evaluating 'analyze analyze syntax))
-
-(define (install-quotation syntax)
-  ;; internal procedure
-  (define (test expr)
-    (tagged-with? expr 'quote))
-
-  (define (analyze expr)
-    (lambda (env)
-      (cdr expr)))
-  
-  ;; interface
-  (register 'self-evaluating 'test test syntax)
-  (register 'self-evaluating 'analyze analyze syntax))
-
-(define (install-assignment syntax)
-  ;; internal procedure
-  (define (test expr)
-    (tagged-with? expr 'set!))
-
-  (define (analyze expr)
-    (lambda (env)
-      (set
-  
-  ;; interface
-  (register 'self-evaluating 'test test syntax)
-  (register 'self-evaluating 'analyze analyze syntax))
-
-
+(define (bool? expr)
+  (or (eq? expr 'true)
+      (eq? expr 'false)))
 
 (define (analyze expr syntax)
-  (cond ((primitive-value? expr) (analyze-primitive-value expr))
-        ((variable? expr) (analyze-variable expr))
-        ((quotation? expr) (analyze-quotation expr))
-        ((assignment? expr) (analyze-assignment expr))
-        ((definition? expr) (analyze-definition expr))
-        ((if-expression? expr) (analyze-if-expression expr))
-        ((lambda-expression? expr) (analyze-lambda-expression expr))
-        ((begin-expression? expr) (analyze-begin-expression expr))
-        ((cond-expression? expr) (analyze-cond-expression expr))
-        ((application? expr) (analyze-application expr))
-        (else (error "Unknown expression:" expr))))
+  (define (analyze-primitive-expr)
+    (if (or (number? expr) (string? expr) (bool? expr))
+      (lambda (env) expr)
+      (lambda (env) (find-variable expr env))))
 
-(define (analyze-primitive-value expr)
-  (
+  (define (analyze-complex-expr)
+    (let ((operator (car expr)) (operands (cdr expr)))
+      (define (analyze-proc-application)
+        (lambda (env)
+          (let (proc (find-variable operator env))
+            (if (primitive-procedure? proc)
+              (apply-primitive-procedure proc operands)
+              (apply-compound-procedure proc operands)))))
+
+      (let ((analyze-special-form (lookup operator syntax)))
+        (if analyze-special-form
+          (analyze-special-form expr syntax)
+          (analyze-proc-application)))))
+
+  (if (pair? expr)
+    (analyze-complex-expr)
+    (analyze-primitive-expr)))
 

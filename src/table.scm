@@ -25,6 +25,12 @@
                         (make-item key value) 
                         (cdr table))))))
 
+(define (has-key? table key)
+  (let ((tail (find-tail 
+                (lambda (x) (equal? key (item-key x)))
+                (cdr table))))
+    (if tail #t #f)))
+
 (define (get table key)
   (let ((tail (find-tail 
                 (lambda (x) (equal? key (item-key x)))
