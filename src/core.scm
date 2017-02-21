@@ -1,6 +1,8 @@
+(load "src/builtins.scm")
 (load "src/special-forms/basic-sf.scm")
 (load "src/data-structures/syntax.scm")
 (load "src/data-structures/procedure.scm")
+(load "src/data-structures/environment.scm")
 
 (define syntax (make-syntax))
 
@@ -28,7 +30,7 @@
       (let ((analyze-special-form (and (symbol? operator) 
                                        (lookup operator syntax))))
         (if analyze-special-form
-          (analyze-special-form expr)
+          (analyze-special-form expr syntax)
           (analyze-proc-application)))))
 
   (if (pair? expr)
@@ -36,20 +38,28 @@
     (analyze-primitive-expr)))
 
 (define (schenne-eval expr env)
-  (let ((executable (analyze expr syntax)))
-    (executable env)))
+    ((analyze expr syntax) env))
 
 (define (schenne-apply proc args)
   (define (apply-primitive-proc)
     (apply (cadr proc) args))
 
   (define (apply-compound-proc)
-    (let ((frame (make-frame 
-                   (zip (compound-proc-parameters proc) args))))
-      (schenne-eval (compound-proc-body proc)
-                    (extend-environment (compound-proc-env proc) frame))))
+    ((compound-proc-body proc) (extend-environment 
+                                 (compound-proc-env proc) 
+                                 (make-frame (map cons 
+                                                  (compound-proc-parameters proc) 
+                                                  args)))))
 
   (if (primitive-proc? proc)
     (apply-primitive-proc)
     (apply-compound-proc)))
+
+(define (setup-environment)
+  (extend-environment 
+    the-empty-environment
+    (make-frame (map (lambda (p) 
+                       (cons (car p) 
+                             (make-primitive-proc (cdr p))))
+                     builtin-list))))
 

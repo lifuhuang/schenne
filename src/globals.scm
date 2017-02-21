@@ -11,3 +11,12 @@
 (define (true? expr)
   (not (false? expr)))
 
+(define (chain-executables exes)
+  (let ((sequentially (lambda (exe1 exe2)
+                        (lambda (env)
+                          (exe1 env)
+                          (exe2 env))))
+        (dummy-exe (lambda (env)
+                     unspecified-value)))
+    (reduce-left sequentially dummy-exe exes)))
+

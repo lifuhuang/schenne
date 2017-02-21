@@ -1,34 +1,36 @@
+(load "src/globals.scm")
+
 ;; All basic special forms in Scheme.
 
 (define unspecified-value 'unspecified-value)
 
 (define (install-quotation syntax)
-  (define (analyze-quotation expr)
+  (define (analyze-quotation expr syntax)
     (lambda (env)
       (cdr expr)))
 
   (register 'quote analyze-quotation syntax))
 
 (define (install-assignment syntax)
-  (define (analyze-assignment expr)
+  (define (analyze-assignment expr syntax)
     (let ((var (cadr expr))
-          (val-exe (analyze (caddr expr))))
+          (val-exe (analyze (caddr expr) syntax)))
       (lambda (env)
         (set-variable! var (val-exe env) env))))
   
   (register 'set! analyze-assignment syntax))
 
 (define (install-definition syntax)
-  (define (analyze-definition expr)
+  (define (analyze-definition expr syntax)
     (let ((var (cadr expr))
-          (val-exe (analyze (caddr expr))))
+          (val-exe (analyze (caddr expr) syntax)))
       (lambda (env)
         (define-variable! var (val-exe env) env))))
   
   (register 'define analyze-definition syntax))
 
 (define (install-if-expression syntax)
-  (define (analyze-if-expression expr)
+  (define (analyze-if-expression expr syntax)
     (let ((predicate-exe (analyze (cadr expr) syntax))
           (consequence-exe (analyze (caddr expr) syntax))
           (alternative-exe (analyze (cadddr expr) syntax)))
@@ -41,19 +43,14 @@
 
 (define (install-lambda-expression syntax)
   (define (analyze-lambda-expression expr syntax)
+    (let ((executable (chain-executables 
+                        (map (lambda (expr) 
+                               (analyze expr syntax))
+                             (cddr expr)))))
     (lambda (env)
-      (make-compound-procedure (cadr expr) (caddr expr) env)))
+      (make-compound-proc (cadr expr) executable env))))
           
   (register 'lambda analyze-lambda-expression syntax))
-
-(define (chain-executables exes)
-  (let ((sequentially (lambda (exe1 exe2)
-                        (lambda (env)
-                          (exe1 env)
-                          (exe2 env))))
-        (dummy-exe (lambda (env)
-                     unspecified-value)))
-    (reduce-left sequentially dummy-exe exes)))
 
 (define (install-begin-expression syntax)
   (define (analyze-begin-expression expr syntax)
@@ -64,7 +61,7 @@
   (register 'begin analyze-begin-expression syntax))
 
 (define (install-cond-expression syntax)
-  (define (analyze-cond-expression expr)
+  (define (analyze-cond-expression expr syntax)
     (define (analyze-clause-predicate clause)
       (let ((predicate (car clause)))
         (if (eq? predicate 'else)
