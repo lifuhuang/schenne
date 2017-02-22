@@ -17,16 +17,32 @@
           (val-exe (analyze (caddr expr) syntax)))
       (lambda (env)
         (set-variable! var (val-exe env) env))))
-  
+
   (register 'set! analyze-assignment syntax))
 
 (define (install-definition syntax)
   (define (analyze-definition expr syntax)
-    (let ((var (cadr expr))
-          (val-exe (analyze (caddr expr) syntax)))
-      (lambda (env)
-        (define-variable! var (val-exe env) env))))
-  
+    (define (analyze-var-definition)
+      (let ((var (cadr expr))
+            (val-exe (analyze (caddr expr) syntax)))
+        (lambda (env)
+          (define-variable! var (val-exe env) env))))
+          
+    (define (analyze-proc-definition)
+      (let ((proc-name (caadr expr))
+            (proc-params (cdadr expr))
+            (proc-body (chain-executables (map (lambda (expr)
+                                                  (analyze expr syntax))
+                                                  (cddr expr)))))
+        (lambda (env)
+          (define-variable! proc-name
+                            (make-compound-proc proc-params proc-body env)
+                            env))))
+
+    (if (pair? (cadr expr))
+      (analyze-var-definition)
+      (analyze-proc-definition)))
+
   (register 'define analyze-definition syntax))
 
 (define (install-if-expression syntax)
@@ -38,26 +54,26 @@
         (if (true? (predicate-exe env))
           (consequence-exe env)
           (alternative-exe env)))))
-          
+
   (register 'if analyze-if-expression syntax))
 
 (define (install-lambda-expression syntax)
   (define (analyze-lambda-expression expr syntax)
-    (let ((executable (chain-executables 
-                        (map (lambda (expr) 
+    (let ((executable (chain-executables
+                        (map (lambda (expr)
                                (analyze expr syntax))
                              (cddr expr)))))
     (lambda (env)
       (make-compound-proc (cadr expr) executable env))))
-          
+
   (register 'lambda analyze-lambda-expression syntax))
 
 (define (install-begin-expression syntax)
   (define (analyze-begin-expression expr syntax)
-    (chain-executables (map (lambda (expr) 
-                              (analyze expr syntax)) 
+    (chain-executables (map (lambda (expr)
+                              (analyze expr syntax))
                             (cdr expr))))
-          
+
   (register 'begin analyze-begin-expression syntax))
 
 (define (install-cond-expression syntax)
@@ -70,15 +86,15 @@
 
     (define (analyze-clause-consequence clause)
       (let* ((consequence-exprs (cdr clause))
-             (executables (map (lambda (expr) 
-                                 (analyze expr syntax)) 
+             (executables (map (lambda (expr)
+                                 (analyze expr syntax))
                                consequence-exprs)))
         (chain-executables executables)))
-    
+
     (define (invalid-else? clauses)
       (cond ((null? clauses) #f)
             ((and (eq? (caar clauses) 'else)
-                  (not (eq? (cdr clauses) '()))) 
+                  (not (eq? (cdr clauses) '())))
              #t)
             (else (invalid-else? (cdr clauses)))))
 
@@ -93,7 +109,7 @@
                 (else unspecified-value)))))
 
     (let ((clauses (cdr expr)))
-      (cond ((null? clauses) 
+      (cond ((null? clauses)
              (error "cond must have at least one clause."))
             ((invalid-else? clauses)
              (error "Invalid else clause."))
@@ -112,4 +128,3 @@
   (install-if-expression syntax)
   (install-lambda-expression syntax)
   (install-quotation syntax))
-
