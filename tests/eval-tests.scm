@@ -32,8 +32,16 @@
     (write ".")
     (assert-eq (schenne-eval 'x env) 1)
     (write ".")
-    (assert-eq (schenne-eval 'y env) 2)))
+    (assert-eq (schenne-eval 'y env) 2)
     (write ".")
+    (schenne-eval '(define (func x y) (+ x y)) env)
+    (write ".")
+    (assert-eq (schenne-eval '(func 1 2) env) 3)
+    (write ".")
+    (schenne-eval '(define (method) 1) env)
+    (write ".")
+    (assert-eq (schenne-eval '(method) env) 1)
+    (write ".")))
 
 (define (test-lambda-environment)
   (let ((env (setup-environment)))
@@ -59,6 +67,71 @@
     (assert (schenne-eval '(((lambda (x) (define y (+ x 2)) (lambda (z) (+ y z))) 1) 3) env) 6)
     (write ".")))
 
+(define (test-cond-expression)
+  (let ((env (setup-environment)))
+    (assert-eq (schenne-eval 
+                 '(cond (true 1))
+                 env) 
+               1)
+    (write ".")
+    (assert-eq (schenne-eval 
+                 '(cond (false 1) 
+                        (true 2))
+                 env) 
+               2)
+    (write ".")
+    (assert-eq (schenne-eval 
+                 '(cond ((= 1 3) 1) 
+                        ((= 2 3) 2) 
+                        (else 3))
+                 env)
+               3)
+    (write ".")
+    (assert-eq (schenne-eval 
+                 '(cond ((= 1 3) 1)
+                        ((= 1 2) 2)
+                        ((= 3 3) 3)
+                        (else 4))
+                 env) 
+               3)
+    (write ".")))
+
+(define (test-begin-expression)
+  (let ((env (setup-environment)))
+    (assert-eq (schenne-eval
+                 '(begin )
+                 env) unspecified-value)
+    (write ".")
+    (assert-eq (schenne-eval
+                 '(begin (+ 1 1))
+                 env) 
+               2)
+    (write ".")
+    (assert-eq (schenne-eval
+                 '(begin (+ 1 1) 
+                         (+ 2 2))
+                 env) 
+               4)
+    (write ".")
+    (assert-eq (schenne-eval
+                 '(begin (define x 1) 
+                         (set! x 2)
+                         (+ 3 3) 
+                         (+ x x))
+                 env) 
+               4)
+    (assert-eq (schenne-eval
+                 '(begin (define x 1) 
+                         (set! x 2)
+                         (+ 3 3)
+                         (cond ((= x 1) 1) 
+                               ((= x 2) 2)
+                               (else 3)))
+                 env) 
+               2)
+    (write ".")))
+               
+
 (define (run-eval-tests)
   (newline)
   (test-if-expression)
@@ -70,6 +143,14 @@
 
   (newline)
   (test-lambda-environment)
-  (write "Passed lambda-expression tests."))
+  (write "Passed lambda-expression tests.")
+
+  (newline)
+  (test-cond-expression)
+  (write "Passed cond-expression tests.")
+
+  (newline)
+  (test-begin-expression)
+  (write "Passed begin-expression tests."))
 
 (run-eval-tests)

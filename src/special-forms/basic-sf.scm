@@ -32,16 +32,16 @@
       (let ((proc-name (caadr expr))
             (proc-params (cdadr expr))
             (proc-body (chain-executables (map (lambda (expr)
-                                                  (analyze expr syntax-table))
-                                                  (cddr expr)))))
+                                                 (analyze expr syntax-table))
+                                               (cddr expr)))))
         (lambda (env)
           (define-variable! proc-name
                             (make-compound-proc proc-params proc-body env)
                             env))))
 
     (if (pair? (cadr expr))
-      (analyze-var-definition)
-      (analyze-proc-definition)))
+      (analyze-proc-definition)
+      (analyze-var-definition)))
 
   (register 'define analyze-definition syntax-table))
 
@@ -63,8 +63,8 @@
                         (map (lambda (expr)
                                (analyze expr syntax-table))
                              (cddr expr)))))
-    (lambda (env)
-      (make-compound-proc (cadr expr) executable env))))
+      (lambda (env)
+        (make-compound-proc (cadr expr) executable env))))
 
   (register 'lambda analyze-lambda-expression syntax-table))
 
@@ -81,15 +81,13 @@
     (define (analyze-clause-predicate clause)
       (let ((predicate (car clause)))
         (if (eq? predicate 'else)
-          (lambda (env) #t)
+          (lambda (env) true)
           (analyze predicate syntax-table))))
 
     (define (analyze-clause-consequence clause)
-      (let* ((consequence-exprs (cdr clause))
-             (executables (map (lambda (expr)
-                                 (analyze expr syntax-table))
-                               consequence-exprs)))
-        (chain-executables executables)))
+      (chain-executables (map (lambda (expr)
+                                (analyze expr syntax-table))
+                              (cdr clause))))
 
     (define (invalid-else? clauses)
       (cond ((null? clauses) #f)
@@ -98,25 +96,22 @@
              #t)
             (else (invalid-else? (cdr clauses)))))
 
-    (define (merge-clauses clause1 clause2)
-      (let ((pred1 (analyze-clause-predicate clause1))
-            (pred2 (analyze-clause-predicate clause2))
-            (conseq1 (analyze-clause-consequence clause1))
-            (conseq2 (analyze-clause-consequence clause2)))
-        (lambda (env)
-          (cond ((true? pred1) (conseq1 env))
-                ((true? pred2) (conseq2 env))
-                (else unspecified-value)))))
-
     (let ((clauses (cdr expr)))
       (cond ((null? clauses)
              (error "cond must have at least one clause."))
             ((invalid-else? clauses)
              (error "Invalid else clause."))
             (else
-              (reduce-right merge-clauses
-                            '()
-                            clauses)))))
+              (fold-right (lambda (clause alternative-exe)
+                            (let ((predicate-exe (analyze-clause-predicate clause))
+                                  (conseqence-exe (analyze-clause-consequence clause)))
+                              (lambda (env)
+                                (if (true? (predicate-exe env))
+                                  (conseqence-exe env)
+                                  (alternative-exe env)))))
+                          (lambda (env) 
+                            unspecified-value)
+                          clauses)))))
 
   (register 'cond analyze-cond-expression syntax-table))
 

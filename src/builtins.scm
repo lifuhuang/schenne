@@ -1,33 +1,38 @@
-(define (lt x y)
+(define (LT x y)
   (if (< x y)
     'true
     'false))
 
-(define (gt x y)
+(define (GT x y)
   (if (> x y)
     'true
     'false))
 
-(define (le x y)
+(define (LE x y)
   (if (<= x y)
     'true
     'false))
 
-(define (ge x y)
+(define (GE x y)
   (if (>= x y)
     'true
     'false))
 
-(define (square x)
+(define (EQ x y)
+  (if (= x y)
+    'true
+    'false))
+
+(define (SQUARE x)
   (* x x))
 
-(define (cube x)
+(define (CUBE x)
   (* x x x))
 
-(define (inc x)
+(define (INC x)
   (+ x 1))
 
-(define (dec x)
+(define (DEC x)
   (- x 1))
 
 (define builtin-list
@@ -35,15 +40,15 @@
         (cons '- -)
         (cons '* *)
         (cons '/ /)
-        (cons '= =)
-        (cons '< lt)
-        (cons '> gt)
-        (cons '<= le)
-        (cons '>= ge)
-        (cons 'square square)
-        (cons 'cube cube)
-        (cons 'inc inc)
-        (cons 'dec dec)
+        (cons '= EQ)
+        (cons '< LT)
+        (cons '> GT)
+        (cons '<= LE)
+        (cons '>= GE)
+        (cons 'square SQUARE)
+        (cons 'cube CUBE)
+        (cons 'inc INC)
+        (cons 'dec DEC)
         (cons 'cons cons)
         (cons 'car car)
         (cons 'cdr cdr)
