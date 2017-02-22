@@ -6,8 +6,11 @@
 
 (define (install-quotation syntax-table)
   (define (analyze-quotation expr syntax-table)
-    (lambda (env)
-      (cdr expr)))
+    (if (or (null? (cdr expr))
+            (not (null? (cddr expr))))
+      (error "Ill-formed special form.")
+      (lambda (env)
+        (cadr expr))))
 
   (register 'quote analyze-quotation syntax-table))
 
